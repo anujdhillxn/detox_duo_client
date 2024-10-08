@@ -16,7 +16,6 @@ export const AllRulesView: React.FC = () => {
     };
 
     const { rules } = useAppContext();
-
     const MyRuleComponents = rules.filter(rule => rule.isMyRule).map((rule) => {
         return () => <RuleCardContainer rule={rule} />;
     });
@@ -29,7 +28,7 @@ export const AllRulesView: React.FC = () => {
         <View>
             <TouchableOpacity style={styles.createButton} onPress={navigateToRuleCreator}>
                 <Text style={styles.createButtonText}>Create New Rule</Text>
-                <Icon name="add" size={24} color="#fff" />
+                <Icon name="add" size={20} color="#fff" />
             </TouchableOpacity>
             <HideableView
 
@@ -52,21 +51,18 @@ const styles = StyleSheet.create({
     },
     createButton: {
         flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
         marginTop: 20,
         marginBottom: 20,
         paddingVertical: 10,
         paddingHorizontal: 20,
         backgroundColor: '#007BFF',
         borderRadius: 5,
-        alignSelf: 'center'
+        alignItems: 'center',
+        justifyContent: 'center',
+        alignSelf: 'center',
     },
     createButtonText: {
         color: '#fff',
         fontSize: 16,
-    },
-    createButtonIcon: {
-        marginRight: 10, // Add margin to the left of the icon
-    },
+    }
 });

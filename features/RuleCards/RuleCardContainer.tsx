@@ -4,7 +4,7 @@ import { Rule, RuleCardComponents, RuleType } from '../../types';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '../../App';
-import { Menu, MenuOption, MenuOptions, MenuProvider, MenuTrigger } from 'react-native-popup-menu';
+import { Menu, MenuOption, MenuOptions, MenuTrigger } from 'react-native-popup-menu';
 import { useApi } from '../../contexts/useApi';
 import { useActions } from '../../contexts/useActions';
 const RuleCardContainer: React.FC<{ rule: Rule<RuleType> }> = ({ rule }) => {
@@ -28,8 +28,34 @@ const RuleCardContainer: React.FC<{ rule: Rule<RuleType> }> = ({ rule }) => {
             })
     };
 
+    const toggleActive = () => {
+        ruleApi.updateRule({ ...rule, isActive: !rule.isActive })
+            .then(() => {
+                ruleApi.getRules().then((rulesResp) => {
+                    setRules(rulesResp);
+                })
+                    .catch((err) => {
+                        console.log(err);
+                    })
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    };
+
     const deleteRule = () => {
-        // Logic to delete the rule
+        ruleApi.deleteRule(rule)
+            .then(() => {
+                ruleApi.getRules().then((rulesResp) => {
+                    setRules(rulesResp);
+                })
+                    .catch((err) => {
+                        console.log(err);
+                    })
+            })
+            .catch((err) => {
+                console.log(err);
+            });
     };
 
     const RuleCardDetails = RuleCardComponents[rule.ruleType];
@@ -40,12 +66,13 @@ const RuleCardContainer: React.FC<{ rule: Rule<RuleType> }> = ({ rule }) => {
             </View>
             <View style={styles.buttonsSection}>
                 <Menu>
-                    <MenuTrigger>
-                        <Icon name="more-vert" size={24} color="#000" />
+                    <MenuTrigger disabled={!rule.changeAllowed && !rule.isMyRule}>
+                        <Icon name="more-vert" size={24} color={!rule.changeAllowed && !rule.isMyRule ? "#888" : "#000"} />
                     </MenuTrigger>
                     <MenuOptions>
                         {!rule.isMyRule && <MenuOption onSelect={navigateToRuleEditor} text="Edit" />}
                         {rule.isMyRule && <MenuOption onSelect={toggleEdit} text={`${rule.changeAllowed ? "Disable" : "Enable"} Edits by Partner`} />}
+                        {!rule.isMyRule && <MenuOption onSelect={toggleActive} text={`${rule.isActive ? "Disable" : "Enable"}`} />}
                         {!rule.isMyRule && <MenuOption onSelect={deleteRule} text="Delete" />}
                     </MenuOptions>
                 </Menu>

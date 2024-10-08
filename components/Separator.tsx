@@ -7,10 +7,10 @@ const Separator: React.FC = () => {
 
 const styles = StyleSheet.create({
     separator: {
-        width: '90%',
+        marginVertical: 10,
         height: 1,
         backgroundColor: '#E0E0E0',
-        alignSelf: 'center',
+        alignSelf: 'stretch',
     },
 });
 

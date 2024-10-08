@@ -35,7 +35,6 @@ const RuleHeader: React.FC<RuleHeaderProps> = ({ title, menuVisible, toggleMenu,
                 name="keyboard-arrow-right"
                 size={24}
                 color="#fff"
-                style={styles.menuIcon}
             />
         </Animated.View>
     </TouchableOpacity>;
@@ -59,17 +58,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         marginTop: 5,
-        width: '100%',
         paddingVertical: 10,
         paddingHorizontal: 20,
         backgroundColor: '#007BFF',
-        alignSelf: 'center',
     },
     menuButtonText: {
         color: '#fff',
         fontSize: 16,
-    },
-    menuIcon: {
-        marginLeft: 10,
-    },
+    }
 });

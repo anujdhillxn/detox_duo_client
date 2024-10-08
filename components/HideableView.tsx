@@ -1,5 +1,6 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
+import Separator from './Separator';
 
 export type HeaderProps = {
     menuVisible: boolean;
@@ -14,53 +15,64 @@ interface MenuProps {
 }
 
 export const HideableView: React.FC<MenuProps> = ({ Header, Components, openedInitially }) => {
-    const [menuVisible, setMenuVisible] = React.useState(Boolean(openedInitially));
-    const menuHeight = useRef(new Animated.Value(0)).current;
-    const [itemHeights, setItemHeights] = useState<number[]>([]);
+    const [menuVisible, setMenuVisible] = useState(openedInitially || false);
+
+    // Ensure animations array always reflects the number of Components
+    const animations = useMemo(() => Components.map(() => new Animated.Value(0)), [Components]);
 
     const toggleMenu = () => {
-        setMenuVisible(!menuVisible);
+        setMenuVisible((prev) => !prev);
     };
-    useEffect(() => {
-        const totalHeight = itemHeights.reduce((sum, height) => sum + height, 0);
-        Animated.timing(menuHeight, {
-            toValue: menuVisible ? totalHeight : 0,
-            duration: 300,
-            useNativeDriver: false,
-        }).start();
-    }, [menuVisible, itemHeights]);
 
-    const onItemLayout = (index: number) => (event: any) => {
-        const { height } = event.nativeEvent.layout;
-        setItemHeights((prevHeights) => {
-            const newHeights = [...prevHeights];
-            newHeights[index] = height;
-            return newHeights;
-        });
-    };
+    useEffect(() => {
+        const animationsArray = animations.map((anim: any) =>
+            Animated.timing(anim, {
+                toValue: menuVisible ? 1 : 0,
+                duration: 300,
+                useNativeDriver: true,
+            })
+        );
+
+        // Use staggered animation based on menu visibility
+        Animated.stagger(100, menuVisible ? animationsArray : [...animationsArray].reverse()).start();
+    }, [menuVisible, animations]);
+
     return (
         <View>
-            <Header menuVisible={menuVisible} toggleMenu={toggleMenu} itemCount={itemHeights.length} />
-            <Animated.View style={[styles.menu, { height: menuHeight }]}>
+            <Header menuVisible={menuVisible} toggleMenu={toggleMenu} itemCount={Components.length} />
+            {menuVisible && <View style={styles.menu}>
                 {Components.map((Component, index) => (
-                    <View key={index} onLayout={onItemLayout(index)} style={styles.menuItem}>
+                    <Animated.View
+                        key={index}
+                        style={[
+                            styles.menuItem,
+                            {
+                                opacity: animations[index],
+                                transform: [
+                                    {
+                                        scale: animations[index].interpolate({
+                                            inputRange: [0, 1],
+                                            outputRange: [0.9, 1],
+                                        }),
+                                    },
+                                ],
+                            },
+                        ]}
+                    >
                         <Component />
-                    </View>
+                    </Animated.View>
                 ))}
-            </Animated.View>
+            </View>}
         </View>
     );
 };
 
+
 const styles = StyleSheet.create({
     menu: {
         overflow: 'hidden',
-        backgroundColor: '#fff',
-        borderRadius: 5,
     },
     menuItem: {
-        fontSize: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: '#ccc',
+        marginBottom: 10,
     },
 });

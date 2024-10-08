@@ -18,8 +18,9 @@ export enum RuleType {
 }
 
 export type ScreenTimeDetails = {
-    maxMinutes: number;
-    startsAt: Date;
+    dailyMaxSeconds: number;
+    hourlyMaxSeconds: number;
+    dailyStartsAt: string;
 };
 
 export type RuleDetailsMap = {

@@ -6,10 +6,11 @@ import { useApi } from '../contexts/useApi';
 import { DuoRequestHeaderRenderer } from './RuleMenuHeader';
 import { useActions } from '../contexts/useActions';
 import { HideableView } from './HideableView';
+import Separator from './Separator';
+import DuoRequest from './DuoRequest';
 
 const DuoRequests: React.FC = () => {
     const { duoRequests, user } = useAppContext();
-    const { setMyDuo, setDuoRequests } = useActions();
     const [username, setUsername] = useState('');
     const { duoApi } = useApi()
     const handleSendRequest = () => {
@@ -23,36 +24,11 @@ const DuoRequests: React.FC = () => {
             })
     };
 
+
+
     const DuoRequestComponents = duoRequests.map((duo) => {
         const sender = duo.user1 === user!.username ? duo.user2 : duo.user1;
-        return () => (
-            <View style={styles.container}>
-                <Text>{`Duo request from ${sender}`}</Text>
-                <Button title="Accept" onPress={() => {
-                    duoApi.confirmDuo(sender)
-                        .then(() => {
-                            duoApi.getDuos().then((duoResp) => {
-                                setMyDuo(duoResp.myDuo.length ? duoResp.myDuo[0] : null);
-                                setDuoRequests(duoResp.requestsSent.filter((duo) => !duo.isConfirmed));
-                            }).catch((err) => {
-                                console.log(err);
-                            })
-                        })
-                        .catch((err) => {
-                            console.log('Error confirming duo:', err);
-                        });
-                }} />
-                <Button title="Reject" onPress={() => {
-                    duoApi.deleteDuo(sender)
-                        .then(() => {
-                            console.log('Duo request rejected successfully');
-                        })
-                        .catch((err) => {
-                            console.log('Error rejecting duo request:', err);
-                        });
-                }} />
-            </View>
-        );
+        return () => <DuoRequest sender={sender} />;
     });
 
     return (
@@ -64,6 +40,7 @@ const DuoRequests: React.FC = () => {
                 onChangeText={setUsername}
             />
             <Button title="Send Duo Request" onPress={handleSendRequest} />
+            <Separator />
             <HideableView openedInitially Header={DuoRequestHeaderRenderer} Components={DuoRequestComponents} />
         </View>
     );
@@ -79,6 +56,7 @@ const styles = StyleSheet.create({
         height: 40,
         borderColor: 'gray',
         borderWidth: 1,
+        borderRadius: 5,
         padding: 10,
         marginTop: 20,
         marginBottom: 20,

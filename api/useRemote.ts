@@ -11,7 +11,7 @@ export type Remote = {
     get: (endpoint: string, headers?: HeadersInit) => Promise<any>;
     post: (endpoint: string, body?: any, headers?: HeadersInit) => Promise<any>;
     put: (endpoint: string, body: any, headers?: HeadersInit) => Promise<any>;
-    del: (endpoint: string, headers?: HeadersInit) => Promise<any>;
+    del: (endpoint: string, body?: any, headers?: HeadersInit) => Promise<any>;
     requestToken: string | null;
     setRequestToken: (token: string | null) => void;
 };
@@ -39,10 +39,11 @@ const useRemote = (): Remote => {
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                const data = await response.json();
+                const text = await response.text();
+                const data = text ? JSON.parse(text) : {};
                 return data;
             } catch (err) {
-                console.log("Error fetching data:", err);
+                throw err;
             }
         },
         [baseUrl, requestToken]
@@ -78,8 +79,12 @@ const useRemote = (): Remote => {
     );
 
     const del = useCallback(
-        (endpoint: string, headers?: HeadersInit) => {
-            return request(endpoint, { method: "DELETE", headers });
+        (endpoint: string, body: any, headers?: HeadersInit) => {
+            return request(endpoint, {
+                method: "DELETE",
+                headers,
+                body: JSON.stringify(body),
+            });
         },
         [request]
     );

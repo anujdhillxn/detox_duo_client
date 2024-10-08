@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Button } from 'react-native';
 import { Rule, RuleType } from '../../types';
+import { formatTime } from '../RuleCreators/ScreentimeRuleCreator';
 
 interface ScreentimeRuleCardProps {
     rule: Rule<RuleType.SCREENTIME>;
@@ -9,8 +10,9 @@ interface ScreentimeRuleCardProps {
 export const ScreentimeRuleCard: React.FC<ScreentimeRuleCardProps> = ({ rule }) => {
     return (
         <View style={styles.card}>
-            <Text style={styles.title}>{rule.app}</Text>
-            <Text style={styles.timeLimit}>Time Limit: {rule.details.maxMinutes} minutes</Text>
+            <Text style={[styles.title, { color: rule.isActive ? '#000' : '#888' }]}>{rule.app}</Text>
+            <Text style={styles.timeLimit}>Daily: {formatTime(rule.details.dailyMaxSeconds / 60)}, Hourly: {formatTime(rule.details.hourlyMaxSeconds / 60)}</Text>
+            <Text style={styles.timeLimit}>Resets at: {new Date(rule.details.dailyStartsAt).toLocaleTimeString()}</Text>
         </View>
     );
 };

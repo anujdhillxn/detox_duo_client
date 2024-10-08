@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { RuleCreatorComponents, RuleDetailsMap, RuleType } from '../types';
@@ -26,6 +26,7 @@ const RuleCreatorScreen: React.FC = () => {
     const { ruleApi } = useApi();
     const { setRules } = useActions();
     const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+    const [installedApps, setInstalledApps] = useState<{ label: string, value: string }[]>([]);
     const onSave = (ruleDetails: RuleDetailsMap[RuleType]) => {
         ruleApi.createRule({ app: selectedApp!, ruleType: selectedRuleType!, details: ruleDetails })
             .then(() => {
@@ -49,6 +50,7 @@ const RuleCreatorScreen: React.FC = () => {
                 selectedValue={selectedApp}
                 onValueChange={(itemValue) => setSelectedApp(itemValue)}
             >
+                <Picker.Item label="Select App" value={null} style={styles.placeholder} />
                 {dummyApps.map((app) => (
                     <Picker.Item key={app.value} label={app.label} value={app.value} />
                 ))}
@@ -59,6 +61,7 @@ const RuleCreatorScreen: React.FC = () => {
                 selectedValue={selectedRuleType}
                 onValueChange={(itemValue) => setSelectedRuleType(itemValue)}
             >
+                <Picker.Item style={styles.placeholder} label="Select Rule Type" value={null} />
                 {ruleTypes.map((ruleType) => (
                     <Picker.Item key={ruleType.value} label={ruleType.label} value={ruleType.value} />
                 ))}
@@ -99,32 +102,8 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginTop: 20,
     },
-});
-
-const pickerSelectStyles = StyleSheet.create({
-    inputIOS: {
-        fontSize: 16,
-        paddingVertical: 12,
-        paddingHorizontal: 10,
-        borderWidth: 1,
-        borderColor: 'gray',
-        borderRadius: 4,
-        color: 'black',
-        paddingRight: 30, // to ensure the text is never behind the icon
-        backgroundColor: '#fff', // White background for iOS
-        marginBottom: 20,
-    },
-    inputAndroid: {
-        fontSize: 16,
-        paddingHorizontal: 10,
-        paddingVertical: 8,
-        borderWidth: 1,
-        borderColor: 'gray',
-        borderRadius: 4,
-        color: 'black',
-        paddingRight: 30, // to ensure the text is never behind the icon
-        backgroundColor: '#fff', // White background for Android
-        marginBottom: 20,
+    placeholder: {
+        color: '#888', // Grey color for the placeholder text
     },
 });
 

@@ -17,8 +17,8 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import Icon5 from 'react-native-vector-icons/FontAwesome5';
 import RuleCreatorScreen from './features/RuleCreatorScreen';
 import DuoScreen from './features/DuoScreen';
-import { RuleEditorScreen } from './features/RuleEditorScreen';
 import { MenuProvider } from 'react-native-popup-menu';
+import RuleEditorScreen from './features/RuleEditorScreen';
 
 const Stack = createStackNavigator();
 export type RootStackParamList = {
@@ -58,22 +58,28 @@ const MainScreen = () => {
         console.log(err);
         api.remote.setRequestToken(null);
       })
-      api.duoApi.getDuos().then((duoResp) => {
-        setMyDuo(duoResp.myDuo.length ? duoResp.myDuo[0] : null);
-        setDuoRequests(duoResp.requestsReceived);
-      }).catch((err) => {
-        console.log(err);
-      })
-      api.ruleApi.getRules().then((rulesResp) => {
-        setRules(rulesResp);
-      })
-        .catch((err) => {
-          console.log(err);
-        })
       AsyncStorage
         .setItem('userToken', api.remote.requestToken);
     }
   }, [api.remote.requestToken]);
+
+  React.useEffect(() => {
+    api.duoApi.getDuos().then((duoResp) => {
+      setMyDuo(duoResp.myDuo.length ? duoResp.myDuo[0] : null);
+      setDuoRequests(duoResp.requestsReceived);
+    }).catch((err) => {
+      console.log(err);
+    })
+  }, [user]);
+
+  React.useEffect(() => {
+    api.ruleApi.getRules().then((rulesResp) => {
+      setRules(rulesResp);
+    })
+      .catch((err) => {
+        console.log(err);
+      })
+  }, [myDuo])
 
   return <ApiContext.Provider value={api}>
     <AppContext.Provider value={{ user, myDuo, duoRequests, rules }}>

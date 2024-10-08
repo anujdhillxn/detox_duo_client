@@ -23,7 +23,7 @@ export const useDuoApi = (remote: Remote) => {
     };
 
     const deleteDuo = (username: string) => {
-        return del("duos/delete-duo", { other_user_name: username });
+        return del("duos/delete-duo", { with_user_name: username });
     };
 
     return { getDuos, createDuo, confirmDuo, deleteDuo };

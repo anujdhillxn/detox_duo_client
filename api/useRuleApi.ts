@@ -2,7 +2,7 @@ import { Rule, RuleType } from "../types";
 import { Remote } from "./useRemote";
 
 export const useRuleApi = (remote: Remote) => {
-    const { get, post, put } = remote;
+    const { get, post, put, del } = remote;
 
     const getRules = (): Promise<Rule<RuleType>[]> => {
         return get("rules/user-rules");
@@ -16,6 +16,15 @@ export const useRuleApi = (remote: Remote) => {
         });
     };
 
+    const updateRule = (rule: Partial<Rule<RuleType>>) => {
+        return put("rules/update-rule", {
+            app: rule.app,
+            ruletype: rule.ruleType,
+            rule_details: JSON.stringify(rule.details),
+            is_active: rule.isActive,
+        });
+    };
+
     const allowChange = (rule: Partial<Rule<RuleType>>) => {
         return put(`rules/allow-change-to-rule`, {
             app: rule.app,
@@ -23,5 +32,12 @@ export const useRuleApi = (remote: Remote) => {
         });
     };
 
-    return { getRules, createRule, allowChange };
+    const deleteRule = (rule: Partial<Rule<RuleType>>) => {
+        return del("rules/delete-rule", {
+            app: rule.app,
+            ruletype: rule.ruleType,
+        });
+    };
+
+    return { getRules, createRule, updateRule, allowChange, deleteRule };
 };
