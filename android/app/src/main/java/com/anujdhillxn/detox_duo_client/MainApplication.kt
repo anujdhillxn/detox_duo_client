@@ -2,6 +2,7 @@ package com.anujdhillxn.detox_duo_client
 
 import android.app.Application
 import android.content.res.Configuration
+import com.anujdhillxn.detox_duo_client.modules.DetoxDuoPackage
 
 import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication

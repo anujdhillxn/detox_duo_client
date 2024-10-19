@@ -40,8 +40,8 @@ export const formatTime = (totalSeconds: number): string => {
 
 export const ScreenTimeRuleCreator = (props: ScreentimeRuleCreatorProps): React.ReactNode => {
     console.log(props.initialDetails);
-    const [dailyMaxMinutes, setDailyMaxMinutes] = useState(props.initialDetails ? props.initialDetails.dailyMaxSeconds : 30);
-    const [hourlyMaxMinutes, setHourlyMaxMinutes] = useState(props.initialDetails ? props.initialDetails.hourlyMaxSeconds : 5);
+    const [dailyMaxMinutes, setDailyMaxMinutes] = useState(props.initialDetails ? Math.floor(props.initialDetails.dailyMaxSeconds / 60) : 30);
+    const [hourlyMaxMinutes, setHourlyMaxMinutes] = useState(props.initialDetails ? Math.floor(props.initialDetails.hourlyMaxSeconds / 60) : 5);
     const [dailyStartsAt, setStartsAt] = useState<Date>(props.initialDetails ? new Date(props.initialDetails.dailyStartsAt) : new Date());
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 

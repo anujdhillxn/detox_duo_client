@@ -1,4 +1,4 @@
-package com.anujdhillxn.detox_duo_client;
+package com.anujdhillxn.detox_duo_client.modules;
 
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;

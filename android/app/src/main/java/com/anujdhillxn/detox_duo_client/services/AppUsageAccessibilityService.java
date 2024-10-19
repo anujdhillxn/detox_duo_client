@@ -1,4 +1,4 @@
-package com.anujdhillxn.detox_duo_client;
+package com.anujdhillxn.detox_duo_client.services;
 
 import android.accessibilityservice.AccessibilityService;
 import android.content.ComponentName;
@@ -56,7 +56,6 @@ public class AppUsageAccessibilityService extends AccessibilityService {
     public void onAccessibilityEvent(AccessibilityEvent event) {
         int eventType = event.getEventType();
         String packageName = event.getPackageName() != null ? event.getPackageName().toString() : "";
-        Log.i(TAG, String.format("Received event %s %s", eventType, packageName));
         if (!isBound || usageTrackerService == null) {
             Log.i(TAG, "UsageTracker service not bound");
             return;
@@ -65,7 +64,6 @@ public class AppUsageAccessibilityService extends AccessibilityService {
                 && !packageName.equals("com.android.systemui")
             && !(lastModal && packageName.equals("com.anujdhillxn.detox_duo_client"))) {
             lastModal = false;
-            Log.i(TAG, String.format("Opened %s", packageName));
             if (!packageName.equals(lastPackageName)) {
                 lastPackageName = packageName;
                 if (usageTrackerService.isHourlyLimitExceeded(packageName) || usageTrackerService.isDailyLimitExceeded(packageName)) {

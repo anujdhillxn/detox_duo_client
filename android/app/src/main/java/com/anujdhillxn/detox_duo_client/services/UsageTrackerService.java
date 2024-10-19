@@ -1,28 +1,21 @@
-package com.anujdhillxn.detox_duo_client;
+package com.anujdhillxn.detox_duo_client.services;
 
 import android.app.Service;
 import android.app.usage.UsageEvents;
-import android.app.usage.UsageStats;
 import android.app.usage.UsageStatsManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
-import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 
-import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
-
 import com.anujdhillxn.detox_duo_client.rules.ScreentimeRule;
-import com.anujdhillxn.detox_duo_client.utils.AppUtils;
 
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.TimeZone;
 
 public class UsageTrackerService extends Service {
 
@@ -34,7 +27,7 @@ public class UsageTrackerService extends Service {
     private final IBinder binder = new LocalBinder();
 
     public class LocalBinder extends Binder {
-        UsageTrackerService getService() {
+        public UsageTrackerService getService() {
             return UsageTrackerService.this;
         }
     }
@@ -119,7 +112,7 @@ public class UsageTrackerService extends Service {
         UsageEvents usageEvents = usageStatsManager.queryEvents(startTime, endTime);
         long totalTimeInForeground = 0;
         long lastForegroundTime = -1;
-
+        Log.i(TAG, String.format("checking %s 's usage from %s to %s", packageName, new Date(startTime), new Date(endTime)));
         UsageEvents.Event event = new UsageEvents.Event();
 
         while (usageEvents.hasNextEvent()) {
@@ -127,7 +120,6 @@ public class UsageTrackerService extends Service {
 
             if (packageName.equals(event.getPackageName())) {
                 if(packageName.equals("co.hinge.app"))
-                    Log.i(TAG, event.getEventType() == UsageEvents.Event.MOVE_TO_BACKGROUND ? "back" : "fore");
                 if (event.getEventType() == UsageEvents.Event.MOVE_TO_FOREGROUND) {
                     // Record the time when the app moves to the foreground
                     lastForegroundTime = event.getTimeStamp();

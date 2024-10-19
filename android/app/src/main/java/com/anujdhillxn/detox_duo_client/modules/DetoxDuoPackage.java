@@ -1,4 +1,4 @@
-package com.anujdhillxn.detox_duo_client;
+package com.anujdhillxn.detox_duo_client.modules;
 
 import com.facebook.react.ReactPackage;
 import com.facebook.react.bridge.ReactApplicationContext;

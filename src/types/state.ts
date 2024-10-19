@@ -39,6 +39,7 @@ export type RuleDetailsMap = {
 export type Permissions = {
     hasUsageStatsPermission?: boolean;
     hasOverlayPermission?: boolean;
+    hasAccessibilityPermission?: boolean;
 };
 
 export type AppContextType = {

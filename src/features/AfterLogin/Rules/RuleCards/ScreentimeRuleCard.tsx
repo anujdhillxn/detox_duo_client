@@ -10,31 +10,39 @@ interface ScreentimeRuleCardProps {
 
 export const ScreentimeRuleCard: React.FC<ScreentimeRuleCardProps> = ({ rule }) => {
 
-    const [usage, setUsage] = React.useState<string>("");
-    const fetchUsage = async () => {
+    const [currentDailyUsage, setCurrentDailyUsage] = React.useState<string>("");
+    const [currentHourlyUsage, setCurrentHourlyUsage] = React.useState<string>("");
+    const fetchHourlyScreenTime = async () => {
         try {
-            const usage = await UsageTracker.getScreenTime(rule.app);
-            setUsage(formatTime(usage));
+            const hourlyScreenTime = await UsageTracker.getHourlyScreenTime(rule.app);
+            setCurrentHourlyUsage(formatTime(hourlyScreenTime));
         }
         catch (e: any) {
-            setUsage(e.message);
+            setCurrentHourlyUsage(e.message);
         }
     };
-    React.useEffect(() => {
-        const timeout = setTimeout(() => {
-            fetchUsage();
-        }, 5000)
-        return () => {
-            clearTimeout(timeout);
+
+    const fetchDailyScreenTime = async () => {
+        try {
+            const dailyScreenTime = await UsageTracker.getDailyScreenTime(rule.app);
+            setCurrentDailyUsage(formatTime(dailyScreenTime));
         }
+        catch (e: any) {
+            setCurrentDailyUsage(e.message);
+        }
+    }
+
+    React.useEffect(() => {
+        fetchHourlyScreenTime();
+        fetchDailyScreenTime();
     }, []);
 
     return (
         <View style={styles.card}>
             <Text style={[styles.title, { color: rule.isActive ? '#000' : '#888' }]}>{rule.app}</Text>
-            <Text style={styles.timeLimit}>Daily: {formatTime(rule.details.dailyMaxSeconds)}, Hourly: {formatTime(rule.details.hourlyMaxSeconds)}</Text>
+            <Text style={styles.timeLimit}>Daily: {currentDailyUsage}/{formatTime(rule.details.dailyMaxSeconds)}</Text>
+            <Text style={styles.timeLimit}>Hourly: {currentHourlyUsage}/{formatTime(rule.details.hourlyMaxSeconds)}</Text>
             <Text style={styles.timeLimit}>Resets at: {new Date(rule.details.dailyStartsAt).toLocaleTimeString()}</Text>
-            <Text style={styles.timeLimit}>Current: {usage}</Text>
         </View>
     );
 };

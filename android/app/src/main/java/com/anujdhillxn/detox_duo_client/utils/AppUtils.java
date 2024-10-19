@@ -35,13 +35,12 @@ public class AppUtils {
         "com.match.com" // Match.com
     };
 
-    public static enum RuleType {
+    public enum RuleType {
         SCREENTIME
     }
 
     public static Calendar parseISO8601String(String isoDateString) {
-        SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault());
-        isoFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault());
         Calendar calendar = Calendar.getInstance();
         try {
             calendar.setTime(isoFormat.parse(isoDateString));  // Parse the date string
@@ -49,5 +48,33 @@ public class AppUtils {
             e.printStackTrace();  // Handle parse exception
         }
         return calendar;
+    }
+
+    public static String formatTime(int totalSeconds) {
+        int hours = totalSeconds / 3600;
+        int secondsLeft = totalSeconds % 3600;
+        int minutes = secondsLeft / 60;
+        int seconds = secondsLeft % 60;
+        StringBuilder formattedTime = new StringBuilder();
+
+        if (hours > 0) {
+            formattedTime.append(hours).append(" hour").append(hours > 1 ? "s" : "");
+        }
+
+        if (minutes > 0) {
+            if (formattedTime.length() > 0) {
+                formattedTime.append(", ");
+            }
+            formattedTime.append(minutes).append(" minute").append(minutes > 1 ? "s" : "");
+        }
+
+        if (seconds > 0) {
+            if (formattedTime.length() > 0) {
+                formattedTime.append(", ");
+            }
+            formattedTime.append(seconds).append(" second").append(seconds > 1 ? "s" : "");
+        }
+
+        return formattedTime.length() > 0 ? formattedTime.toString() : "0 seconds";
     }
 }

@@ -1,6 +1,5 @@
-package com.anujdhillxn.detox_duo_client;
+package com.anujdhillxn.detox_duo_client.modules;
 
-import android.app.usage.UsageStatsManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -8,9 +7,8 @@ import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.util.Log;
 
-import androidx.annotation.NonNull;
-
 import com.anujdhillxn.detox_duo_client.rules.ScreentimeRule;
+import com.anujdhillxn.detox_duo_client.services.UsageTrackerService;
 import com.anujdhillxn.detox_duo_client.utils.AppUtils;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;

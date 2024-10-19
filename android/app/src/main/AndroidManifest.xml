@@ -50,7 +50,7 @@
       </intent-filter>
     </activity>
     <service
-        android:name=".AppUsageAccessibilityService"
+        android:name=".services.AppUsageAccessibilityService"
         android:exported="true"
         android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
       <intent-filter>
@@ -61,8 +61,8 @@
           android:name="android.accessibilityservice"
           android:resource="@xml/accessibility_service_config" />
     </service>
-    <service android:name=".FloatingWindowService" android:permission="android.permission.BIND_JOB_SERVICE" android:exported="true"/>
-    <service android:name=".UsageTrackerService" />
+    <service android:name=".services.FloatingWindowService" android:permission="android.permission.BIND_JOB_SERVICE" android:exported="true"/>
+    <service android:name=".services.UsageTrackerService" />
     <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" android:exported="false"/>
   </application>
 </manifest>

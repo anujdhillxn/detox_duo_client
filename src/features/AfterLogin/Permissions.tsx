@@ -21,6 +21,8 @@ export const PermissionsScreen: React.FC = () => {
         setPermissions((current) => { return { ...current, hasUsageStatsPermission } });
         const hasOverlayPermission = await PermissionsModule.hasOverlayPermission();
         setPermissions((current) => { return { ...current, hasOverlayPermission } });
+        const hasAccessibilityPermission = await PermissionsModule.hasAccessibilityPermission();
+        setPermissions((current) => { return { ...current, hasAccessibilityPermission } });
     };
 
     const handleRequestUsageStatsPermission = async () => {
@@ -31,6 +33,11 @@ export const PermissionsScreen: React.FC = () => {
     const handleRequestOverlayPermission = async () => {
         const hasOverlayPermission = await PermissionsModule.requestOverlayPermission();
         setPermissions((current) => { return { ...current, hasOverlayPermission } });
+    };
+
+    const handleRequestAccessibilityPermission = async () => {
+        const hasAccessibilityPermission = await PermissionsModule.requestAccessibilityPermission();
+        setPermissions((current) => { return { ...current, hasAccessibilityPermission } });
     };
 
     return (
@@ -50,6 +57,14 @@ export const PermissionsScreen: React.FC = () => {
             </Text>
             {permissions.hasOverlayPermission === false && (
                 <Button title="Grant Overlay Permissions" onPress={handleRequestOverlayPermission} />
+            )}
+            <Text style={styles.title}>
+                {permissions.hasAccessibilityPermission === false
+                    ? "Detox Duo needs Accessibility Permissions to monitor your app usage. Please enable them to continue."
+                    : "Checking for accessibility permissions..."}
+            </Text>
+            {permissions.hasAccessibilityPermission === false && (
+                <Button title="Grant Accessibility Permissions" onPress={handleRequestAccessibilityPermission} />
             )}
         </View>
     );

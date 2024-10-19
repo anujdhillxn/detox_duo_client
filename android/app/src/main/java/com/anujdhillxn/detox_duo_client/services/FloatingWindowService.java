@@ -1,4 +1,4 @@
-package com.anujdhillxn.detox_duo_client;
+package com.anujdhillxn.detox_duo_client.services;
 
 import android.app.Service;
 import android.content.Intent;
@@ -7,7 +7,8 @@ import android.os.IBinder;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.TextView;
+
+import com.anujdhillxn.detox_duo_client.R;
 
 public class FloatingWindowService extends Service {
     private WindowManager windowManager;
