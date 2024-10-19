@@ -1,6 +1,7 @@
 package com.anujdhillxn.detox_duo_client;
 
 import android.app.Service;
+import android.app.usage.UsageEvents;
 import android.app.usage.UsageStats;
 import android.app.usage.UsageStatsManager;
 import android.content.Context;
@@ -20,6 +21,8 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.TimeZone;
 
 public class UsageTrackerService extends Service {
 
@@ -69,64 +72,80 @@ public class UsageTrackerService extends Service {
 
     public int getHourlyScreentime(final String packageName) {
         long currentTime = System.currentTimeMillis();
-
-
-        // Calculate the start of the current hour
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
-        long startTime = calendar.getTimeInMillis();
-
-        // Query usage stats from the start of the current hour to the current time
-        List<UsageStats> stats = usageStatsManager.queryUsageStats(
-                UsageStatsManager.INTERVAL_BEST, startTime, currentTime);
-
-        if (stats != null) {
-            for (UsageStats usageStat : stats) {
-                if (packageName.equals(usageStat.getPackageName())) {
-                    return (int) (usageStat.getTotalTimeInForeground() / 1000); // Return time in seconds
-                }
-            }
-        }
-        return 0;
+        long startOfCurrentHour = calendar.getTimeInMillis();
+        return getScreentimeUsingEvents(startOfCurrentHour, currentTime, packageName);
     }
 
     public int getDailyScreentime(final String packageName) {
+        final Calendar dailyReset = Objects.requireNonNull(ruleMap.get(packageName)).getDailyStartsAt();
+        long resetTime = dailyReset.getTimeInMillis();
         long currentTime = System.currentTimeMillis();
-
-        // Calculate the start of the current day
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
-        long startTime = calendar.getTimeInMillis();
-
-        // Query usage stats from the start of the current day to the current time
-        List<UsageStats> stats = usageStatsManager.queryUsageStats(
-                UsageStatsManager.INTERVAL_DAILY, startTime, currentTime);
-
-        if (stats != null) {
-            for (UsageStats usageStat : stats) {
-                if (packageName.equals(usageStat.getPackageName())) {
-                    return (int) (usageStat.getTotalTimeInForeground() / 1000); // Return time in seconds
-                }
-            }
+        if (resetTime > currentTime) {
+           dailyReset.add(Calendar.DAY_OF_MONTH, -1);
         }
-        return 0;
+        long startTime = dailyReset.getTimeInMillis();
+        return getScreentimeUsingEvents(startTime, currentTime, packageName);
         
     }
 
     public boolean isHourlyLimitExceeded (final String packageName) {
-        final int hourlyUsage = getHourlyScreentime(packageName);
         ScreentimeRule rule = ruleMap.get(packageName);
-        Log.i(TAG, String.format("Hourly limit for %s = %s", packageName, rule == null ? "null" : rule.getHourlyMaxSeconds()));
-        return (rule != null && hourlyUsage >= rule.getHourlyMaxSeconds());
+        if (rule == null) {
+            return false;
+        }
+        final int hourlyUsage = getHourlyScreentime(packageName);
+        return hourlyUsage >= rule.getHourlyMaxSeconds();
+    }
+
+    public boolean isDailyLimitExceeded(final String packageName) {
+        ScreentimeRule rule = ruleMap.get(packageName);
+        if(rule == null) {
+            return false;
+        }
+        final int dailyUsage = getDailyScreentime(packageName);
+        return dailyUsage >= rule.getDailyMaxSeconds();
     }
 
     public void updateRules(final Map<String, ScreentimeRule> newRules) {
         ruleMap.clear();
         ruleMap.putAll(newRules);
     }
+
+    private int getScreentimeUsingEvents(long startTime, long endTime, final String packageName) { // not perfect
+        UsageEvents usageEvents = usageStatsManager.queryEvents(startTime, endTime);
+        long totalTimeInForeground = 0;
+        long lastForegroundTime = -1;
+
+        UsageEvents.Event event = new UsageEvents.Event();
+
+        while (usageEvents.hasNextEvent()) {
+            usageEvents.getNextEvent(event);
+
+            if (packageName.equals(event.getPackageName())) {
+                if(packageName.equals("co.hinge.app"))
+                    Log.i(TAG, event.getEventType() == UsageEvents.Event.MOVE_TO_BACKGROUND ? "back" : "fore");
+                if (event.getEventType() == UsageEvents.Event.MOVE_TO_FOREGROUND) {
+                    // Record the time when the app moves to the foreground
+                    lastForegroundTime = event.getTimeStamp();
+                } else if (event.getEventType() == UsageEvents.Event.MOVE_TO_BACKGROUND && lastForegroundTime != -1) {
+                    // Add the time spent in foreground if we had a previous foreground event
+                    totalTimeInForeground += (event.getTimeStamp() - lastForegroundTime);
+                    lastForegroundTime = -1; // Reset foreground time after calculating
+                }
+            }
+        }
+
+        // In case the app is still in the foreground at the end of the queried period
+        if (lastForegroundTime != -1) {
+            totalTimeInForeground += (endTime - lastForegroundTime);
+        }
+
+        // Return the total time in foreground in seconds
+        return (int) (totalTimeInForeground / 1000);
+    }
+
 }

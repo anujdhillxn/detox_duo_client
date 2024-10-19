@@ -66,10 +66,9 @@ public class AppUsageAccessibilityService extends AccessibilityService {
             && !(lastModal && packageName.equals("com.anujdhillxn.detox_duo_client"))) {
             lastModal = false;
             Log.i(TAG, String.format("Opened %s", packageName));
-            Log.i(TAG, String.format("%s hourly usage = %s", packageName, usageTrackerService.getHourlyScreentime(packageName)));
             if (!packageName.equals(lastPackageName)) {
                 lastPackageName = packageName;
-                if (usageTrackerService.isHourlyLimitExceeded(packageName)) {
+                if (usageTrackerService.isHourlyLimitExceeded(packageName) || usageTrackerService.isDailyLimitExceeded(packageName)) {
                     final Intent showScreenTimeExceeded = new Intent(this, FloatingWindowService.class);
                     startService(showScreenTimeExceeded);
                     lastModal = true;
