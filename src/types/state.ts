@@ -25,19 +25,20 @@ export type Rule<T extends RuleType> = {
     details: RuleDetailsMap[T];
 };
 
-export type ScreenTimeDetails = {
+export type ScreenTimeRuleDetails = {
     dailyMaxSeconds: number;
     hourlyMaxSeconds: number;
     dailyStartsAt: string;
 };
 
 export type RuleDetailsMap = {
-    [RuleType.SCREENTIME]: ScreenTimeDetails;
+    [RuleType.SCREENTIME]: ScreenTimeRuleDetails;
     // Add more mappings as needed
 };
 
 export type Permissions = {
     hasUsageStatsPermission?: boolean;
+    hasOverlayPermission?: boolean;
 };
 
 export type AppContextType = {

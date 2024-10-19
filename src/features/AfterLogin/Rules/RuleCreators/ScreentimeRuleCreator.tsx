@@ -3,16 +3,18 @@ import { Button, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import CustomTimePicker from "../../../../components/CustomTimePicker";
-import { ScreenTimeDetails } from "../../../../types/state";
+import { ScreenTimeRuleDetails } from "../../../../types/state";
 
 export type ScreentimeRuleCreatorProps = {
-    onSave: (details: ScreenTimeDetails) => void;
-    initialDetails?: ScreenTimeDetails;
+    onSave: (details: ScreenTimeRuleDetails) => void;
+    initialDetails?: ScreenTimeRuleDetails;
 };
 
-export const formatTime = (totalMinutes: number): string => {
-    const hours = Math.floor(totalMinutes / 60);
-    const minutes = totalMinutes % 60;
+export const formatTime = (totalSeconds: number): string => {
+    const hours = Math.floor(totalSeconds / 3600);
+    const secondsLeft = totalSeconds % 3600;
+    const minutes = Math.floor(secondsLeft / 60);
+    const seconds = Math.trunc(secondsLeft % 60);
     let formattedTime = '';
 
     if (hours > 0) {
@@ -26,7 +28,14 @@ export const formatTime = (totalMinutes: number): string => {
         formattedTime += `${minutes} minute${minutes > 1 ? 's' : ''}`;
     }
 
-    return formattedTime || '0 minutes';
+    if (seconds > 0) {
+        if (formattedTime) {
+            formattedTime += ', ';
+        }
+        formattedTime += `${seconds} second${seconds > 1 ? 's' : ''}`;
+    }
+
+    return formattedTime || '0 seconds';
 };
 
 export const ScreenTimeRuleCreator = (props: ScreentimeRuleCreatorProps): React.ReactNode => {
@@ -63,13 +72,13 @@ export const ScreenTimeRuleCreator = (props: ScreentimeRuleCreatorProps): React.
             <CustomTimePicker onConfirm={(hh, mm) => setDailyMaxMinutes(Number(hh) * 60 + Number(mm))}>
                 <View style={styles.touchable}>
                     <Text style={styles.text}>Daily Max Screen Time</Text>
-                    <Text style={styles.textSmall}>{formatTime(dailyMaxMinutes)}</Text>
+                    <Text style={styles.textSmall}>{formatTime(dailyMaxMinutes * 60)}</Text>
                 </View>
             </CustomTimePicker>
             <CustomTimePicker hideHours onConfirm={(hh, mm) => setHourlyMaxMinutes(Number(hh) * 60 + Number(mm))}>
                 <View style={styles.touchable}>
                     <Text style={styles.text}>Hourly Max Screen Time</Text>
-                    <Text style={styles.textSmall}>{formatTime(hourlyMaxMinutes)}</Text>
+                    <Text style={styles.textSmall}>{formatTime(hourlyMaxMinutes * 60)}</Text>
                 </View>
             </CustomTimePicker>
             <DateTimePickerModal

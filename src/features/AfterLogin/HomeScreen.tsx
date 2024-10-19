@@ -9,7 +9,7 @@ const { PermissionModule } = NativeModules;
 const HomeScreen: React.FC = () => {
     const { myDuo, permissions } = useAppContext();
 
-    if (!permissions.hasUsageStatsPermission) {
+    if (!permissions.hasUsageStatsPermission || !permissions.hasOverlayPermission) {
         return <PermissionsScreen />
     }
 

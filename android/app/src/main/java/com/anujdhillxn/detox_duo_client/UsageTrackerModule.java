@@ -1,36 +1,54 @@
 package com.anujdhillxn.detox_duo_client;
 
-import android.app.usage.UsageStats;
 import android.app.usage.UsageStatsManager;
+import android.content.ComponentName;
 import android.content.Context;
-import android.os.Build;
-import android.os.Handler;
-import android.os.Looper;
-import androidx.annotation.RequiresApi;
+import android.content.Intent;
+import android.content.ServiceConnection;
+import android.os.IBinder;
+import android.util.Log;
 
+import androidx.annotation.NonNull;
+
+import com.anujdhillxn.detox_duo_client.rules.ScreentimeRule;
 import com.anujdhillxn.detox_duo_client.utils.AppUtils;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.ReadableArray;
+import com.facebook.react.bridge.ReadableMap;
 
 import java.util.Calendar;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class UsageTrackerModule extends ReactContextBaseJavaModule {
 
-    private final ReactApplicationContext reactContext;
-    private final Map<String, String> screenTimeMap = new HashMap<>();  // Map to store screen times
-    private final Handler handler = new Handler(Looper.getMainLooper());
+    private UsageTrackerService usageTrackerService;
+    private boolean isBound = false;
+    private final String TAG = "UsageTrackerModule";
+
+    // ServiceConnection to manage the connection to UsageTrackerService
+    private final ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            UsageTrackerService.LocalBinder binder = (UsageTrackerService.LocalBinder) service;
+            usageTrackerService = binder.getService();
+            isBound = true;
+            Log.i(TAG, "UsageTrackerService connected");
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            isBound = false;
+            Log.i(TAG, "UsageTrackerService disconnected");
+        }
+    };
 
     UsageTrackerModule(ReactApplicationContext context) {
         super(context);
-        this.reactContext = context;
-
-        // Start the periodic tracking of app usage
-        startTrackingScreenTimes();
+        bindUsageTrackerService();
     }
 
     @Override
@@ -38,57 +56,72 @@ public class UsageTrackerModule extends ReactContextBaseJavaModule {
         return "UsageTracker";
     }
 
-    // Periodically updates the screen time for the tracked apps
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)  // Requires API 21+
-    private void startTrackingScreenTimes() {
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                updateScreenTimes();  // Update screen times
-                handler.postDelayed(this, 5000);  // Schedule to run every 5 seconds
-            }
-        };
-        handler.post(runnable);  // Start the runnable
+    // Method to bind to UsageTrackerService
+    private void bindUsageTrackerService() {
+        ReactApplicationContext context = getReactApplicationContext();
+        Intent intent = new Intent(context, UsageTrackerService.class);
+        context.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
     }
 
-    // Method to update screen times for each tracked app
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    private void updateScreenTimes() {
-        UsageStatsManager usageStatsManager = (UsageStatsManager) reactContext.getSystemService(Context.USAGE_STATS_SERVICE);
-        Calendar calendar = Calendar.getInstance();
-        long endTime = calendar.getTimeInMillis();
-        calendar.add(Calendar.DAY_OF_MONTH, -1);  // Track usage for the past day
-        long startTime = calendar.getTimeInMillis();
-
-        List<UsageStats> stats = usageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, startTime, endTime);
-
-        if (stats != null) {
-            for (UsageStats usageStat : stats) {
-                String packageName = usageStat.getPackageName();
-                for (String trackedApp : AppUtils.TARGET_PACKAGES) {
-                    if (packageName.equals(trackedApp)) {
-                        long totalTimeInForeground = usageStat.getTotalTimeInForeground();
-                        screenTimeMap.put(packageName, Long.toString(totalTimeInForeground / 1000));  // Update the map
-                    }
-                }
-            }
+    // Unbind the service when the module is destroyed
+    @Override
+    public void invalidate() {  // Use invalidate() instead of onCatalystInstanceDestroy()
+        super.invalidate();
+        if (isBound) {
+            getReactApplicationContext().unbindService(serviceConnection);
+            isBound = false;
+            Log.i(TAG, "UsageTrackerService unbound in invalidate()");
         }
     }
 
-    // Method to fetch the screen time for a specific app from the map
     @ReactMethod
-    public void getScreenTime(String packageName, Promise promise) {
-        if (screenTimeMap.containsKey(packageName)) {
-            String screenTime = screenTimeMap.get(packageName);
-            promise.resolve(screenTime);
-        } else {
-            promise.reject("Error", "No data found for the app.");
+    public void getHourlyScreenTime(String packageName, Promise promise) {
+        if (!isBound) {
+            promise.reject("Service Error", "UsageTrackerService not bound");
+            return;
         }
+
+        int screenTime = usageTrackerService.getHourlyScreentime(packageName);
+        promise.resolve(screenTime);
     }
 
-    // Method to fetch all screen times from the map
     @ReactMethod
-    public void getAllScreenTimes(Promise promise) {
-        promise.resolve(screenTimeMap);
+    public void getDailyScreenTime(String packageName, Promise promise) {
+        if (!isBound) {
+            promise.reject("Service Error", "UsageTrackerService not bound");
+            return;
+        }
+
+        int screenTime = usageTrackerService.getDailyScreentime(packageName);
+        promise.resolve(screenTime);
+    }
+
+    @ReactMethod
+    public void setRules(ReadableArray screentimeRules, Promise promise) {
+        final Map<String, ScreentimeRule> ruleMap = new HashMap<>();
+        for (int i = 0; i < screentimeRules.size(); i++) {
+            final ReadableMap map = screentimeRules.getMap(i);
+            try {
+                final ScreentimeRule screentimeRule = parseRule(map);
+                ruleMap.put(screentimeRule.getApp(), screentimeRule);
+            } catch (Exception e) {
+                promise.reject("Error", e.getMessage());
+            }
+        }
+        usageTrackerService.updateRules(ruleMap);
+        promise.resolve("Rules set");
+    }
+
+    private ScreentimeRule parseRule(ReadableMap map) {
+        final boolean isActive = map.getBoolean("isActive");
+        final String app = map.getString("app");
+        final String ruleType = map.getString("ruleType");
+        assert (AppUtils.RuleType.SCREENTIME.toString().equals(ruleType));
+        final ReadableMap details = map.getMap("details");
+        assert details != null;
+        final int dailyMaxSeconds = details.getInt("dailyMaxSeconds");
+        final int hourlyMaxSeconds = details.getInt("hourlyMaxSeconds");
+        final Calendar dailyStartsAt = AppUtils.parseISO8601String(details.getString("dailyStartsAt"));
+        return new ScreentimeRule(isActive, app, dailyMaxSeconds, hourlyMaxSeconds, dailyStartsAt);
     }
 }

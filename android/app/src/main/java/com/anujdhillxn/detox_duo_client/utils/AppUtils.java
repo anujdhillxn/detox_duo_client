@@ -5,6 +5,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.provider.Settings;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Locale;
+import java.util.TimeZone;
+
 public class AppUtils {
 
     // Check if the app has usage stats permission
@@ -28,4 +34,20 @@ public class AppUtils {
         "co.hinge.app", // Hinge
         "com.match.com" // Match.com
     };
+
+    public static enum RuleType {
+        SCREENTIME
+    }
+
+    public static Calendar parseISO8601String(String isoDateString) {
+        SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault());
+        isoFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        Calendar calendar = Calendar.getInstance();
+        try {
+            calendar.setTime(isoFormat.parse(isoDateString));  // Parse the date string
+        } catch (ParseException e) {
+            e.printStackTrace();  // Handle parse exception
+        }
+        return calendar;
+    }
 }

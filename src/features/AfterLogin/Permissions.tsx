@@ -19,27 +19,37 @@ export const PermissionsScreen: React.FC = () => {
     const checkPermissions = async () => {
         const hasUsageStatsPermission = await PermissionsModule.hasUsageStatsPermission();
         setPermissions((current) => { return { ...current, hasUsageStatsPermission } });
+        const hasOverlayPermission = await PermissionsModule.hasOverlayPermission();
+        setPermissions((current) => { return { ...current, hasOverlayPermission } });
     };
 
-    const handleRequestPermission = async () => {
-        const permissionGranted = await PermissionsModule.requestUsageStatsPermission();
-        if (permissionGranted) {
-            Alert.alert("Permission Granted", "You can now track app usage.");
-            // Navigate to the next screen or update state as needed
-        } else {
-            Alert.alert("Permission Required", "Please enable usage stats access for this app in settings.");
-        }
+    const handleRequestUsageStatsPermission = async () => {
+        const hasUsageStatsPermission = await PermissionsModule.requestUsageStatsPermission();
+        setPermissions((current) => { return { ...current, hasUsageStatsPermission } });
+    };
+
+    const handleRequestOverlayPermission = async () => {
+        const hasOverlayPermission = await PermissionsModule.requestOverlayPermission();
+        setPermissions((current) => { return { ...current, hasOverlayPermission } });
     };
 
     return (
         <View style={styles.container}>
             <Text style={styles.title}>
                 {permissions.hasUsageStatsPermission === false
-                    ? "Permissions are not granted. Please enable them to continue."
-                    : "Checking for permissions..."}
+                    ? "Detox Duo needs Usage Stats Permissions to monitor your screentime. Please enable them to continue."
+                    : "Checking for usage stats permissions..."}
             </Text>
             {permissions.hasUsageStatsPermission === false && (
-                <Button title="Grant Permissions" onPress={handleRequestPermission} />
+                <Button title="Grant Usage Stats Permission" onPress={handleRequestUsageStatsPermission} />
+            )}
+            <Text style={styles.title}>
+                {permissions.hasOverlayPermission === false
+                    ? "Detox Duo needs Overlay Permissions to prevent you from excess screentime. Please enable them to continue."
+                    : "Checking for overlay permissions..."}
+            </Text>
+            {permissions.hasOverlayPermission === false && (
+                <Button title="Grant Overlay Permissions" onPress={handleRequestOverlayPermission} />
             )}
         </View>
     );
