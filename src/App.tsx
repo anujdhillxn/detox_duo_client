@@ -18,7 +18,6 @@ export default function App() {
                     </AppContextProvider>
                 </ApiProvider>
             </NavigationContainer>
-
         </MenuProvider>
     );
 }

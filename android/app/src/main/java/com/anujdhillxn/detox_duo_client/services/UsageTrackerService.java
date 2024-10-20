@@ -74,7 +74,11 @@ public class UsageTrackerService extends Service {
     }
 
     public int getDailyScreentime(final String packageName) {
-        final Calendar dailyReset = Objects.requireNonNull(ruleMap.get(packageName)).getDailyStartsAt();
+        final ScreentimeRule rule = ruleMap.get(packageName);
+        if (rule == null) {
+            return 0;
+        }
+        final Calendar dailyReset = rule.getDailyStartsAt();
         long resetTime = dailyReset.getTimeInMillis();
         long currentTime = System.currentTimeMillis();
         if (resetTime > currentTime) {

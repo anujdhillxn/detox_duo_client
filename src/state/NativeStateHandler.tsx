@@ -10,10 +10,9 @@ export const NativeStateHandler = (props: NativeStateHandlerProps) => {
 
     const { rules } = useAppContext();
 
-    const setScreentimeRules = async () => {
+    const setScreentimeRules = () => {
         const screentimeRules = rules.filter(rule => rule.ruleType === "SCREENTIME");
-        const res = await UsageTracker.setRules(screentimeRules);
-        console.log(res);
+        UsageTracker.setRules(screentimeRules);
     }
 
     React.useEffect(() => {
